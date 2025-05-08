@@ -1,0 +1,50 @@
+﻿@page "/home"
+@using Microsoft.EntityFrameworkCore
+@using CustomerPortalV2.Web.Data
+@using CustomerPortalV2.Web.Models
+@inject ApplicationDbContext DbContext
+@inject UserSession Session
+
+<h3>Welcome to Customer Portal</h3>
+
+@if (!Session.IsAuthenticated)
+{
+    <p>You are not logged in.</p>
+}
+else
+{
+    <p>Hello, @Session.Username!</p>
+
+    <h4>Top 10 Orders</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order Number</th>
+                <th>Patient Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.OrderNumber</td>
+                    <td>@order.PatientName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Order> orders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await DbContext.Orders
+            .Where(o => o.OrderNumber != null && o.PatientName != null)
+            .OrderByDescending(o => o.ID)
+            .Take(10)
+            .ToListAsync();
+
+    }
+}
